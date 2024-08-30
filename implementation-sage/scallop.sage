@@ -345,6 +345,7 @@ if __name__ == "__main__":
 
     #param_lvl = "1024"
     param_lvl = "512"
+    param_lvl = "1536"
 
     with open("params_" + param_lvl + ".txt", "r") as file:
         p = Integer(literal_eval(file.readline()))

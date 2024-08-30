@@ -18,4 +18,5 @@ def compute_strategy(ell, n):
     return S[n], C[n]
 
 if __name__=="__main__":
-    print(compute_strategy(2, 518))
+    #print(compute_strategy(2, 518))
+    print(compute_strategy(2, 381))

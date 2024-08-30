@@ -7,7 +7,8 @@
 #include "isog.hpp"
 
 //#include "params_512.hpp"
-#include "params_1024.hpp"
+//#include "params_1024.hpp"
+#include "params_1536.hpp"
 
 
 void printVector(std::vector<int> const &vec) {

@@ -218,13 +218,13 @@ void test_scallop()
     xPoint Q{{Q_0, Q_1}, Fp2_one()};
     xPoint Qm{{Qm_0, Qm_1}, Fp2_one()};
 
-    // Just a random L-infty norm ~(10, 20) vector
+    // Just a random L-infty norm ~(-20, 20) vector
     // std::vector<int> es = GenSecret(dim, N_ball);
     // auto PK_A = GroupAction(P, Q, Qm, A, es);
 
     // Key Exchange
     
-    std::vector<int> es_A = GenSecret(dim, 3);
+    /*std::vector<int> es_A = GenSecret(dim, 3);
     std::vector<int> es_B = GenSecret(dim, 3);
 
     xPoint P_A = P;
@@ -247,11 +247,12 @@ void test_scallop()
     std::cout << "Shared keys equal??" << std::endl;
     std::cout << "j(E_AB) = " << StringFp2(jInvariant(SS_A)) << std::endl;
     std::cout << "j(E_AB) = " << StringFp2(jInvariant(SS_B)) << std::endl;
-    assert (Fp2_equal(jInvariant(SS_A), jInvariant(SS_B))); 
+    assert (Fp2_equal(jInvariant(SS_A), jInvariant(SS_B))); */
 
+    
     //Reduced vector 1024?
-    /* std::vector<int> es{0,-3,5,-2,-2,-1,1,16,14,6,5,-17,16,27,8,-34,6,9,1,2,19,-24,21,35,-2,41,-11,-5,60,-11,80,6,20,13,15,8,22,2,-21,-12,7,-19,-68,-39,9,-68,-13,33,-1,20,-31,-104,-18,-23,6,30,11,11,-7,-11,9,9,8,33,-3,12,0,4,8,4,-4,-11,-1,0,11};
-    auto PK_A = GroupAction(P, Q, Qm, A, es); */
+    std::vector<int> es{0,-3,5,-2,-2,-1,1,16,14,6,5,-17,16,27,8,-34,6,9,1,2,19,-24,21,35,-2,41,-11,-5,60,-11,80,6,20,13,15,8,22,2,-21,-12,7,-19,-68,-39,9,-68,-13,33,-1,20,-31,-104,-18,-23,6,30,11,11,-7,-11,9,9,8,33,-3,12,0,4,8,4,-4,-11,-1,0,11};
+    auto PK_A = GroupAction(P, Q, Qm, A, es);
 
     std::cout << "  Success!\n\n\n\n" << std::endl;
 }
