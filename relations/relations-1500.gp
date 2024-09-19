@@ -74,7 +74,7 @@ writematrix(filename, M) = \\fplll format (check?)
   fileclose(F);
 };
 
-d0 = - randomprime(2^128, Mod(3,4)); \\only for testing
+\\d0 = - randomprime(2^128, Mod(3,4)); \\only for testing
 system(strprintf("touch STRUCTURE-%s",suffix));
 data = readvec(strprintf("STRUCTURE-%s",suffix));
 {if(#data,
@@ -84,6 +84,10 @@ data = readvec(strprintf("STRUCTURE-%s",suffix));
 ,\\else
   print("computing relations for maximal order.");
   res = quadclassunit(d0);
+  /*
+  on paridev:
+  cpu time = 3h, 8min, 13,189 ms, real time = 3h, 7min, 27,140 ms.
+  */
   h = res.no;
   cyc = res.cyc;
   write(strprintf("STRUCTURE-%s",suffix),h);
