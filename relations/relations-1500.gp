@@ -74,7 +74,7 @@ writematrix(filename, M) = \\fplll format (check?)
   fileclose(F);
 };
 
-\\d0 = - randomprime(2^128, Mod(3,4)); \\only for testing
+d0 = - randomprime(2^128, Mod(3,4)); \\only for testing
 system(strprintf("touch STRUCTURE-%s",suffix));
 data = readvec(strprintf("STRUCTURE-%s",suffix));
 {if(#data,
@@ -97,6 +97,7 @@ M = readvec(strprintf("REL-%s",suffix));
 M = matconcat(M);
 print("h=",h);
 print("cyc=",cyc);
+if(h != vecprod(cyc), error("wrong structure"));
 if(#M~ != #FB, error("dimension of relation matrix != size of factor base"));
 
 /*
@@ -108,46 +109,51 @@ with generators:
 */
 
 
-\\cyc = ***
-\\h = vecprod(cyc);
+system(strprintf("touch LLLREL-%s",suffix));
+Mlll = read(strprintf("LLLREL-%s",suffix));
+{if(type(Mlll)=="t_INT",
+  print("LLL reducing relations for maximal order.");
+  H = mathnfmodid(M,2*h);
+  Mlll = qflll(H,3); \\in place, no flatter
+  write(strprintf("LLLREL-%s",suffix), Mlll);
+,\\else
+  print("loading LLL reduced relations for maximal order.");
+)};
+\\here we could check that mathnfmodid(Mlll,2*h) is consistent.
 
-/*
-B = read("BASIS-ex2");
-B = Vec(B);
-*/
 
-/*
-M = read("REL-ex2");
-M = concat(M);
-M = Mat(apply(Col,Vec(M)));
-H = mathnfmodid(M,2*h);
-M = qflll(H,3); \\need to desactivate flatter here!
-                \\currently: hack ZM_lll_norms
-writebin("REL-ex2-lll", M);
-*/
+nb = 75; \\number of primes we want to keep
+forbidden = [2,3];
+deleteprimes = List();
+keepprimes = List();
+for(i=1,#FB,
+  my(p = FB[i]);
+  if(vecsearch(forbidden,p),
+    listput(~deleteprimes,i);
+  ,/* else if */#keepprimes<nb,
+    listput(~keepprimes,i);
+  ,\\else
+    listput(~deleteprimes,i);
+  );
+);
+keepprimes = Vec(keepprimes);
+deleteprimes = Vec(deleteprimes);
+subFB = vecextract(FB,keepprimes);
+system(strprintf("touch SUBREL-%s-%s",suffix,nb));
+Msub = read(strprintf("SUBREL-%s-%s",suffix,nb));
+{if(type(Msub)=="t_INT",
+  print("computing maximal order relations for a smaller factor base (", nb, " primes).");
+  Mdel = vecextract(Mlll,deleteprimes,[1..#Mlll]);
+  K = matkerint(Mdel);
+  Msub = vecextract(Mlll,keepprimes,[1..#Mlll]);
+  Msub = Msub*K;
+  Msub = qflll(Msub,3);
+  write(strprintf("SUBREL-%s-%s",suffix,nb),Msub);
+,\\else
+  print("loading maximal order relations for a smaller factor base (", nb, " primes).");
+)};
+\\could also store/load subFB, or check compatibility.
 
-nb = 50;
-\\B = B[2..nb+1];
-/*
-M = read("REL-ex2-lll");
-print1("computing kernel...");
-t = getabstime();
-K = matkerint(matconcat([M[1,];M[nb+2..-1,]]));
-M = M*K;
-t = getabstime()-t;
-print(" done.");
-printtime(t);
-M = M[2..nb+1,];
-print1("reducing...");
-t = getabstime();
-M = qflll(M,3);
-t = getabstime()-t;
-print(" done.");
-printtime(t);
-system(strprintf("mv REL-ex2-%d REL-ex2-%d-prev", nb, nb));
-writebin(strprintf("REL-ex2-%d",nb),M);
-\\ */
-\\M = read(strprintf("REL-ex2-%d",nb));
 
 /*
   convention:
@@ -157,6 +163,7 @@ writebin(strprintf("REL-ex2-%d",nb),M);
   with
   b = +- sqrt(D mod p) in [1,p-1]
   s.t. b=D mod 2 (here odd)
+  Not sure about even primes.
 */
 dec2 = idealprimedec(nf,2);
 orderdec2 = [dec2[2],dec2[1]];
@@ -166,14 +173,14 @@ orderdec(p) =
   if(p==2,return(orderdec2));
   dec = idealprimedec(nf,p);
   b = nfelttrace(nf,dec[1].gen[2])/2;
-  if((b+d)%2,
+  if((b-d0)%2,
     dec
   ,\\else
     [dec[2],dec[1]]
   );
 };
 
-G = [2,-1;-1,(1+d)/2]; \\det == d
+G = [2,-1;-1,(1-d0)/2]; \\det == -d0
 reconstruct(C) =
 {
   my(id,Gid,T,res);
