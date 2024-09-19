@@ -74,16 +74,16 @@ writematrix(filename, M) = \\fplll format (check?)
   fileclose(F);
 };
 
+\\d0 = - randomprime(2^128, Mod(3,4)); \\only for testing
 system(strprintf("touch STRUCTURE-%s",suffix));
 data = readvec(strprintf("STRUCTURE-%s",suffix));
-print("#data? ", #data);
 {if(#data,
   print("loading already computed relations for maximal order.");
   h = data[1];
   cyc = data[2];
 ,\\else
   print("computing relations for maximal order.");
-  res = quadclassunit(-d0);
+  res = quadclassunit(d0);
   h = res.no;
   cyc = res.cyc;
   write(strprintf("STRUCTURE-%s",suffix),h);
@@ -97,6 +97,7 @@ M = readvec(strprintf("REL-%s",suffix));
 M = matconcat(M);
 print("h=",h);
 print("cyc=",cyc);
+if(#M~ != #FB, error("dimension of relation matrix != size of factor base"));
 
 /*
 From Bill on the 1500 bits example:
