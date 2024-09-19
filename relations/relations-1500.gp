@@ -4,7 +4,7 @@ suffix = "1500";
 
 default(parisize,"1G");
 
-d = -4657663250639184493417860902365641674114776564696771899003406891564171427055
+d = -4657663250639184493417860902365641674114776564696771899003406891564171427055;
 d0 = d \ 9;
 factd = factor(d)[,1];
 
@@ -14,7 +14,7 @@ nf = nfinit(pol);
 addprimes([p | p <- factd, p>10^7]);
 a=155853646279738557685783060518469225577;
 N=2^126;
-fsmall = 3^2 * 32
+fsmall = 3^2 * 32;
 p1 = a;         \\ p1,p2,p3
 p2 = a-N;       \\ have less than 128 bits
 p3 = (a+N)\3;   \\ we can use pari
@@ -118,7 +118,9 @@ Mlll = read(strprintf("LLLREL-%s",suffix));
 {if(type(Mlll)=="t_INT",
   print("LLL reducing relations for maximal order.");
   H = mathnfmodid(M,2*h);
+  setdebug("qflll",4);
   Mlll = qflll(H,3); \\in place, no flatter
+  setdebug("qflll",0);
   write(strprintf("LLLREL-%s",suffix), Mlll);
 ,\\else
   print("loading LLL reduced relations for maximal order.");
@@ -251,6 +253,8 @@ Lpm = [[p1,m1],[p2,m2],[p3,m3a],[p3,m3b]];
   Mdl = matconcat([Mdl;Ldl]);
   bidcyc = concat(bidcyc,mi);
 )};
+
+\\TODO DLP with cado (p4)
 
 print1("computing kernel...");
 t = getabstime();
