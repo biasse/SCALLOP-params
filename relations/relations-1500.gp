@@ -242,6 +242,7 @@ Lpm = [[p1,m1a],[p1,m1b],[p2,m2],[p3,m3a],[p3,m3b]];
 
 print("loading discrete logarithms for medium primes: ", #Ldl, "/", #Lpm);
 {for(i=1,#Ldl,
+  vdl = Ldl[i];
   Mdl = matconcat([Mdl;vdl]);
   bidcyc = concat(bidcyc,Lpm[i][2]);
 )};
@@ -290,28 +291,28 @@ Lpm = [[p4,m4a],[p4,m4b]];
 
 print("loading discrete logarithms for large primes: ", #Ldl, "/", #Lpm);
 {for(i=1,#Ldl,
+  vdl = Ldl[i];
   Mdl = matconcat([Mdl;vdl]);
   bidcyc = concat(bidcyc,Lpm[i][2]);
 )};
 {if(#Ldl<#Lpm,
   print("computing remaining discrete logarithms for large primes: ", #Lpm-#Ldl, "/", #Lpm);
+  /* ~1h */
   for(i=#Ldl+1,#Lpm,
     my([pi,mi] = Lpm[i],modpr,Rmodp,t,vdl);
     modpr = nfmodprinit(nf, idealprimedec(nf,pi)[1]);
     Rmodp = vector(#R,i,makeint(nfmodpr(nf,RQ[i],modpr)));
     print1("computing discrete logs... size m: ", exponent(mi), " size p: ", exponent(pi), " ");
-    t = getabstime();
+    t = getwalltime();
     vdl = cado_dlp(pi, mi, Rmodp);
-    t = getabstime()-t;
-    print(" done.");
+    t = getwalltime()-t;
+    print(" done. Walltime:");
     printtime(t);
     Mdl = matconcat([Mdl;vdl]);
     bidcyc = concat(bidcyc,mi);
     write(strprintf("LARGEDL-%s-%s",suffix,nb), vdl);
   );
 )};
-
-/*
 
 print1("computing kernel...");
 t = getabstime();
@@ -320,24 +321,29 @@ t = getabstime()-t;
 print(" done.");
 printtime(t);
 
-print1("LLL reduction...");
-t = getabstime();
-M = qflll(M*K,3);
-t = getabstime()-t;
-print(" done.");
-printtime(t);
-*/
+setdebug("qflll",3);
+Msublll = qflll(Msub*K,3);
+setdebug("qflll",0);
+
+system(strprintf("touch LATTICERELS-%Ps-%Ps",suffix,nb));
+system(strprintf("mv LATTICERELS-%Ps-%Ps _LATTICERELS-%Ps-%Ps",suffix,nb,suffix,nb));
+writematrix(strprintf("LATTICERELS-%Ps-%Ps",suffix,nb), Msublll~);
 
 /* check */
-/*
 
-\\TODO check relations are in suborder by reconstruction
+index = znstar(fsmall).no * m1small * m2small * m3small * m4small * factorback(Mlarge);
 
-H = mathnfmodid(M,h*2^10*(p1-1)*(p2-1)*(p3-1));
-hsub = vecprod(vector(#H[,1],i,H[i,i]));
-if(hsub != h*4*4*(p1-1)*(p2-1)*(p3-1), error("wrong class number"));
+print("checking class number.");
+H = mathnfmodid(Msublll,h*6^10*index^2);
+hsub = vecprod(vector(#H~,i,H[i,i]));
+if(hsub != h*index, error("wrong class number."));
 
-system(strprintf("mv RELSUB-ex2-%d RELSUB-ex2-%d-prev", nb, nb));
-write(strprintf("RELSUB-ex2-%d",nb),M);
-*/
+print("checking that relations are in suborder.");
+L = Vec(Msublll);
+{for(i=1,#L,
+  print1(i,"/",#L," ");
+  my(C = L[i], g);
+  g = reconstruct(C);
+  if(g[2]%f != 0, error("not in suborder!"));
+)};
 
