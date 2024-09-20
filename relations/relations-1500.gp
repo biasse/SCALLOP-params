@@ -111,7 +111,7 @@ Mlll = read(strprintf("LLLREL-%s",suffix));
   H = mathnfmodid(M,2*h);
   setdebug("qflll",4);
   U = qflll(H,1); \\no flatter
-  Mlll = H*U; 
+  Mlll = H*U;
   /* 50 min? TODO check */
   setdebug("qflll",0);
   write(strprintf("LLLREL-%s",suffix), Mlll);
@@ -247,7 +247,7 @@ print("loading discrete logarithms for medium primes: ", #Ldl, "/", #Lpm);
 )};
 {if(#Ldl<#Lpm,
   print("computing remaining discrete logarithms for medium primes: ", #Lpm-#Ldl, "/", #Lpm);
-  /* ~ 25 minutes */
+  /* ~ 30 minutes */
   setdebug("arith",1);
   for(i=#Ldl+1,#Lpm,
     my([pi,mi] = Lpm[i],modpr,g,Rmodp,t,vdl);
@@ -267,8 +267,49 @@ print("loading discrete logarithms for medium primes: ", #Ldl, "/", #Lpm);
   setdebug("arith",0);
 )};
 
+/*
+  DLP in F_p^* / (F_p^*)^ell
+*/
+cado_dlp(p,ell,targets) =
+{
+  \\TODO change cado path / file, nb threads
+  my(s);
+  system("mv CADOFILE _CADOFILE");
+  s = strprintf("/home/aurel/cado-nfs/cado-nfs.py -t 1 -dlp -ell %Ps target=%Ps %Ps > CADOFILE",
+    ell, concat(strsplit(concat(Vec(Str(targets))[2..-2])," ")), p);
+  system(s);
+  s = readstr("CADOFILE")[1];
+  s = concat(["[",s,"]"]);
+  eval(s);
+};
 \\compute discrete logs at large primes with cado-nfs
-\\TODO DLP with cado (p4)
+system("touch CADOFILE");
+system(strprintf("touch LARGEDL-%s-%s",suffix,nb));
+Ldl = readvec(strprintf("LARGEDL-%s-%s",suffix,nb));
+Lpm = [[p4,m4a],[p4,m4b]];
+
+print("loading discrete logarithms for large primes: ", #Ldl, "/", #Lpm);
+{for(i=1,#Ldl,
+  Mdl = matconcat([Mdl;vdl]);
+  bidcyc = concat(bidcyc,Lpm[i][2]);
+)};
+{if(#Ldl<#Lpm,
+  print("computing remaining discrete logarithms for large primes: ", #Lpm-#Ldl, "/", #Lpm);
+  for(i=#Ldl+1,#Lpm,
+    my([pi,mi] = Lpm[i],modpr,Rmodp,t,vdl);
+    modpr = nfmodprinit(nf, idealprimedec(nf,pi)[1]);
+    Rmodp = vector(#R,i,makeint(nfmodpr(nf,RQ[i],modpr)));
+    print1("computing discrete logs... size m: ", exponent(mi), " size p: ", exponent(pi), " ");
+    t = getabstime();
+    vdl = cado_dlp(pi, mi, Rmodp);
+    t = getabstime()-t;
+    print(" done.");
+    printtime(t);
+    Mdl = matconcat([Mdl;vdl]);
+    bidcyc = concat(bidcyc,mi);
+    write(strprintf("LARGEDL-%s-%s",suffix,nb), vdl);
+  );
+)};
 
 /*
 
