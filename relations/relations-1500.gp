@@ -1,5 +1,19 @@
 /* relations-1500.gp */
 
+/*
+  This computation requires the pari branch aurel-pearl-scallop, available on
+  the pari git server (see https://pari.math.u-bordeaux.fr/git.html),
+  and cado-nfs.
+*/
+
+{iferr(
+  install("Fp_log_index","GGGG");
+,E,
+  warning("You are not using the pari branch aurel-pearl-scallop.");
+  warning("You will not be able to reproduce this computation, but you can use precomputed data.");
+)};
+
+cadopath = "/home/aurel/cado-nfs";
 suffix = "1500";
 
 default(parisize,"1G");
@@ -41,8 +55,6 @@ addprimes(Mlarge);
 
 \\om = ***
 cc = Mat([nfalgtobasis(nf,subst(b,'x,-'x)) | b <- nf.zk]); \\matrix of complex conjugation
-
-\\primes to avoid in factorbasis = 2,3 ?????
 
 /* checks */
 \\if(nfeltnorm(nf,om)!=2^***, error("wrong omega norm!"));
@@ -218,6 +230,7 @@ R = readvec(strprintf("ALGREL-%s-%s",suffix,nb));
   print("loading algebraic form of the relations.");
 )};
 
+
 RQ = [[r,1;cc*r,-1] | r <- R];
 
 \\compute discrete logs at small primes with idealstar with cycmod
@@ -231,10 +244,8 @@ bidcyc = [gcd(d,Msmall) | d <- bidsmall.cyc]; \\should be done by idealstar (bug
   dl
 ))};
 
+
 makeint(x) = if(type(x)=="t_INT",x,polcoef(x.pol,0));
-
-
-install("Fp_log_index","GGGG");
 system(strprintf("touch MEDDL-%s-%s",suffix,nb));
 Ldl = readvec(strprintf("MEDDL-%s-%s",suffix,nb));
 \\Lpm = [[p1,m1a]]; \\for testing
@@ -268,16 +279,17 @@ print("loading discrete logarithms for medium primes: ", #Ldl, "/", #Lpm);
   setdebug("arith",0);
 )};
 
+
 /*
-  DLP in F_p^* / (F_p^*)^ell
+  DLP in F_p^* / (F_p^*)^ell with cado-nfs
 */
 cado_dlp(p,ell,targets) =
 {
-  \\TODO change cado path / file, nb threads
+  \\TODO nb threads
   my(s);
   system("mv CADOFILE _CADOFILE");
-  s = strprintf("/home/aurel/cado-nfs/cado-nfs.py -t 1 -dlp -ell %Ps target=%Ps %Ps > CADOFILE",
-    ell, concat(strsplit(concat(Vec(Str(targets))[2..-2])," ")), p);
+  s = strprintf("%Ps/cado-nfs.py -t 1 -dlp -ell %Ps target=%Ps %Ps > CADOFILE",
+    cadopath, ell, concat(strsplit(concat(Vec(Str(targets))[2..-2])," ")), p);
   system(s);
   s = readstr("CADOFILE")[1];
   s = concat(["[",s,"]"]);
