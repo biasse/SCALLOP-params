@@ -18,7 +18,7 @@ fsmall = 3^2 * 32;
 p1 = a;         \\ p1,p2,p3
 p2 = a-N;       \\ have less than 128 bits
 p3 = (a+N)\3;   \\ we can use pari
-p4 = a^2-3*N^2; \\ p4 has 250 bits, use cado
+p4 = a^2-3*N^2; \\ p4 has 250 bits, use cado-nfs
 flarge = p1*p2*p3*p4;
 f = fsmall * flarge;
 addprimes([p1,p2,p3,p4]);
@@ -74,7 +74,6 @@ writematrix(filename, M) = \\fplll format (check?)
   fileclose(F);
 };
 
-\\d0 = - randomprime(2^128, Mod(3,4)); \\only for testing
 system(strprintf("touch STRUCTURE-%s",suffix));
 data = readvec(strprintf("STRUCTURE-%s",suffix));
 {if(#data,
@@ -104,14 +103,6 @@ print("cyc=",cyc);
 if(h != vecprod(cyc), error("wrong structure"));
 if(#M~ != #FB, error("dimension of relation matrix != size of factor base"));
 
-/*
-From Bill on the 1500 bits example:
-After dividing d by 3^2, the class number is 18956989197469414174124120710182322176
-and the class group SNF is [4628171190788431194854521657759356,4,2,2,2,2,2,2,2,2,2,2]
-with generators:
-[Qfb(44587,10449,2901732225536083321133626955518699816659799047490656157252741140021602),Qfb(8726019445724791095377793482388102477,-8442782027599716148886722981310291285,16869052120149269483909349896657032140),Qfb(12940188378841856893479649465,12940188378841856893479649465,9998272896206228020391280198069869879723608842),Qfb(63329583299744487007762391455,63329583299744487007762391455,2042955724619450476824004665217599844183472706),Qfb(1368263700914586557297419808623508087,1368263700914586557297419808623508087,94899521957641381742870930650481127918),Qfb(35966514436255,35966514436255,3597221937346257431631919880506880963078076056610969123857346),Qfb(13306246495908188253535,13306246495908188253535,9723217947282347764225940108005617122496406653156258),Qfb(6710175606588562069,6710175606588562069,19281095209034865569890642455529287993018511782150831756),Qfb(871023985,871023985,148537281370015714365644047179380793659098216601309648302759010598),Qfb(42468881890391952731892467472114455,42468881890391952731892467472114455,3046465550361715245988422818093952900606),Qfb(39218881,39218881,3298909388566628074864885233867643208010204578005830561137844645294),Qfb(4636809081749,4636809081749,27902709052488205726724282822891534293702937333530416500715276)],1]
-*/
-
 
 system(strprintf("touch LLLREL-%s",suffix));
 Mlll = read(strprintf("LLLREL-%s",suffix));
@@ -119,29 +110,31 @@ Mlll = read(strprintf("LLLREL-%s",suffix));
   print("LLL reducing relations for maximal order.");
   H = mathnfmodid(M,2*h);
   setdebug("qflll",4);
-  Mlll = qflll(H,3); \\in place, no flatter
+  U = qflll(H,1); \\no flatter
+  Mlll = H*U; 
+  /* 50 min? TODO check */
   setdebug("qflll",0);
   write(strprintf("LLLREL-%s",suffix), Mlll);
 ,\\else
   print("loading LLL reduced relations for maximal order.");
 )};
-\\here we could check that mathnfmodid(Mlll,2*h) is consistent.
+\\here we could check that snf(Mlll) is consistent, but this is a bit slow.
 
 
 nb = 75; \\number of primes we want to keep
-forbidden = [2,3];
+forbidden = Set(concat([2,3],factd~));
 deleteprimes = List();
 keepprimes = List();
-for(i=1,#FB,
+{for(i=1,#FB,
   my(p = FB[i]);
-  if(vecsearch(forbidden,p),
+  if(setsearch(forbidden,p),
     listput(~deleteprimes,i);
   ,/* else if */#keepprimes<nb,
     listput(~keepprimes,i);
   ,\\else
     listput(~deleteprimes,i);
   );
-);
+)};
 keepprimes = Vec(keepprimes);
 deleteprimes = Vec(deleteprimes);
 subFB = vecextract(FB,keepprimes);
@@ -158,7 +151,8 @@ Msub = read(strprintf("SUBREL-%s-%s",suffix,nb));
 ,\\else
   print("loading maximal order relations for a smaller factor base (", nb, " primes).");
 )};
-\\could also store/load subFB, or check compatibility.
+\\could also store/load subFB
+if(matsnf(Msub,4) != cyc, error("incompatible Msub SNF!"));
 
 
 /*
@@ -169,7 +163,7 @@ Msub = read(strprintf("SUBREL-%s-%s",suffix,nb));
   with
   b = +- sqrt(D mod p) in [1,p-1]
   s.t. b=D mod 2 (here odd)
-  Not sure about even primes.
+  Not sure about even primes (when 2 splits).
 */
 dec2 = idealprimedec(nf,2);
 orderdec2 = [dec2[2],dec2[1]];
@@ -178,6 +172,7 @@ orderdec(p) =
   my(dec,b);
   if(p==2,return(orderdec2));
   dec = idealprimedec(nf,p);
+  if(#dec==1,return([dec[1],dec[1]]));
   b = nfelttrace(nf,dec[1].gen[2])/2;
   if((b-d0)%2,
     dec
@@ -190,39 +185,43 @@ G = [2,-1;-1,(1-d0)/2]; \\det == -d0
 reconstruct(C) =
 {
   my(id,Gid,T,res);
-  id = idealfactorback(nf, vector(nb,i,orderdec(B[i])[if(sign(C[i])>0,1,2)]), abs(C));
+  id = idealfactorback(nf, vector(nb,i,orderdec(subFB[i])[if(sign(C[i])>0,1,2)]), abs(C));
   Gid = id~*G*id;
   T = qflllgram(Gid);
   res = id*T[,1];
-  if(nfeltnorm(nf,res) != factorback(B,abs(C)),
+  if(nfeltnorm(nf,res) != factorback(subFB,abs(C)),
     error("wrong norm in reconstruct: ", res)
   );
   res
 };
 
-/*
-L = Vec(M);
-system(strprintf("mv ALGREL-ex2-%d ALGREL-ex2-%d-prev",nb,nb));
-print1("reconstruct:");
-t = getabstime();
-{for(i=1,nb,
-  if(i%20==0,print1(" ",round(100*i/nb),"%"));
-  C = L[i];
-  g = reconstruct(C);
-  write(strprintf("ALGREL-ex2-%d",nb), g);
+system(strprintf("touch ALGREL-%s-%s",suffix,nb));
+R = readvec(strprintf("ALGREL-%s-%s",suffix,nb));
+{if(#R==0,
+  R = List();
+  print("computing algebraic form of the relations.");
+  my(L = Vec(Msub));
+  print1("reconstruct:");
+  t = getabstime();
+  for(i=1,nb,
+    if(i%20==0,print1(" ",round(100*i/nb),"%"));
+    my(C = L[i], g);
+    g = reconstruct(C);
+    listput(~R,g);
+    write(strprintf("ALGREL-%s-%s",suffix,nb), g);
+  );
+  R = Vec(R);
+  t = getabstime()-t;
+  print(" done.");
+  printtime(t);
+,\\else
+  print("loading algebraic form of the relations.");
 )};
-t = getabstime()-t;
-print(" done.");
-printtime(t);
-\\*/
 
-/*
-R = readvec(strprintf("ALGREL-ex2-%d",nb));
 RQ = [[r,1;cc*r,-1] | r <- R];
-*/
 
 \\compute discrete logs at small primes with idealstar with cycmod
-/*
+print("computing discrete logarithms for small primes.");
 bidsmall = idealstar(nf,f,1,Msmall);
 bidcyc = [gcd(d,Msmall) | d <- bidsmall.cyc]; \\should be done by idealstar (bug)
 {Mdl = Mat(vector(nb,i,
@@ -231,30 +230,47 @@ bidcyc = [gcd(d,Msmall) | d <- bidsmall.cyc]; \\should be done by idealstar (bug
   dl = vectorv(#dl, j, dl[j]%bidcyc[j]);
   dl
 ))};
-*/
 
-/*
 makeint(x) = if(type(x)=="t_INT",x,polcoef(x.pol,0));
-\\compute discrete logs at large primes with Fp_log_index
+
+
 install("Fp_log_index","GGGG");
-\\g "arith" 1
-Lpm = [[p1,m1],[p2,m2],[p3,m3a],[p3,m3b]];
-{foreach(Lpm,pm,
-  [pi,mi] = pm;
-  modpr = nfmodprinit(nf, idealprimedec(nf,pi)[1]);
-  g = lift(znprimroot(pi));
-  Rmodp = vector(#R,i,makeint(nfmodpr(nf,RQ[i],modpr)));
-  print1("computing discrete logs... size m: ", exponent(mi), " size p: ", exponent(pi));
-  t = getabstime();
-  Ldl = Fp_log_index(Rmodp, g, mi, pi);
-  t = getabstime()-t;
-  print(" done.");
-  printtime(t);
-  Mdl = matconcat([Mdl;Ldl]);
-  bidcyc = concat(bidcyc,mi);
+system(strprintf("touch MEDDL-%s-%s",suffix,nb));
+Ldl = readvec(strprintf("MEDDL-%s-%s",suffix,nb));
+\\Lpm = [[p1,m1a]]; \\for testing
+Lpm = [[p1,m1a],[p1,m1b],[p2,m2],[p3,m3a],[p3,m3b]];
+
+print("loading discrete logarithms for medium primes: ", #Ldl, "/", #Lpm);
+{for(i=1,#Ldl,
+  Mdl = matconcat([Mdl;vdl]);
+  bidcyc = concat(bidcyc,Lpm[i][2]);
+)};
+{if(#Ldl<#Lpm,
+  print("computing remaining discrete logarithms for medium primes: ", #Lpm-#Ldl, "/", #Lpm);
+  /* ~ 25 minutes */
+  setdebug("arith",1);
+  for(i=#Ldl+1,#Lpm,
+    my([pi,mi] = Lpm[i],modpr,g,Rmodp,t,vdl);
+    modpr = nfmodprinit(nf, idealprimedec(nf,pi)[1]);
+    g = lift(znprimroot(pi));
+    Rmodp = vector(#R,i,makeint(nfmodpr(nf,RQ[i],modpr)));
+    print1("computing discrete logs... size m: ", exponent(mi), " size p: ", exponent(pi), " ");
+    t = getabstime();
+    vdl = Fp_log_index(Rmodp, g, mi, pi);
+    t = getabstime()-t;
+    print(" done.");
+    printtime(t);
+    Mdl = matconcat([Mdl;vdl]);
+    bidcyc = concat(bidcyc,mi);
+    write(strprintf("MEDDL-%s-%s",suffix,nb), vdl);
+  );
+  setdebug("arith",0);
 )};
 
+\\compute discrete logs at large primes with cado-nfs
 \\TODO DLP with cado (p4)
+
+/*
 
 print1("computing kernel...");
 t = getabstime();
@@ -273,6 +289,9 @@ printtime(t);
 
 /* check */
 /*
+
+\\TODO check relations are in suborder by reconstruction
+
 H = mathnfmodid(M,h*2^10*(p1-1)*(p2-1)*(p3-1));
 hsub = vecprod(vector(#H[,1],i,H[i,i]));
 if(hsub != h*4*4*(p1-1)*(p2-1)*(p3-1), error("wrong class number"));
