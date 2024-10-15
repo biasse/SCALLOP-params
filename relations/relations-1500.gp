@@ -133,7 +133,7 @@ Mlll = read(strprintf("LLLREL-%s",suffix));
 \\here we could check that snf(Mlll) is consistent, but this is a bit slow.
 
 
-nb = 75; \\number of primes we want to keep
+nb = 140; \\number of primes we want to keep
 forbidden = Set(concat([2,3],factd~));
 deleteprimes = List();
 keepprimes = List();
