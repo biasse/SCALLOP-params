@@ -150,6 +150,8 @@ keepprimes = List();
 keepprimes = Vec(keepprimes);
 deleteprimes = Vec(deleteprimes);
 subFB = vecextract(FB,keepprimes);
+system(strprintf("mv SUBBASIS-%s-%s _SUBBASIS-%s-%s",suffix,nb,suffix,nb));
+write(strprintf("SUBBASIS-%s-%s",suffix,nb), subFB);
 system(strprintf("touch SUBREL-%s-%s",suffix,nb));
 Msub = read(strprintf("SUBREL-%s-%s",suffix,nb));
 {if(type(Msub)=="t_INT",
