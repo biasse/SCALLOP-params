@@ -369,14 +369,15 @@ if __name__ == "__main__":
     print((Q).xy()[0])
     print((Qm).xy()[0])
 
-    #es = [randint(-5, 5) for _ in range(75)]
-    es = [3 for _ in range(75)]
+    dim = len(ells)
+    #es = [randint(-5, 5) for _ in range(dim)]
+    es = [3 for _ in range(dim)]
     #es = [0,-3,5,-2,-2,-1,1,16,14,6,5,-17,16,27,8,-34,6,9,1,2,19,-24,21,35,-2,41,-11,-5,60,-11,80,6,20,13,15,8,22,2,-21,-12,7,-19,-68,-39,9,-68,-13,33,2,-3,-6,-139,-1,-4,26,10,-6,1,18,-13,-31,13,14,-6,32,-14,6,0,-3,8,2,6,-4,0,11]
     GroupAction(E, P, Q, es, ells)
 
     """
-    alice = [randint(-3, 3) for _ in range(75)]
-    bob = [randint(-3, 3) for _ in range(75)]
+    alice = [randint(-3, 3) for _ in range(dim)]
+    bob = [randint(-3, 3) for _ in range(dim)]
 
     E_A, P_A, Q_A = GroupAction(E, P, Q, alice.copy(), ells)
     print("\n\n\n ALICE PUBLIC KEY DONE")
