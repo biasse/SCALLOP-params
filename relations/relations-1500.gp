@@ -133,7 +133,7 @@ Mlll = read(strprintf("LLLREL-%s",suffix));
 \\here we could check that snf(Mlll) is consistent, but this is a bit slow.
 
 
-nb = 140; \\number of primes we want to keep
+nb = 75; \\number of primes we want to keep
 forbidden = Set(concat([2,3],factd~));
 deleteprimes = List();
 keepprimes = List();
@@ -348,9 +348,13 @@ writematrix(strprintf("LATTICERELS-%Ps-%Ps",suffix,nb), Msublll~);
 
 index = znstar(fsmall).no * m1small * m2small * m3small * m4small * factorback(Mlarge);
 
-print("checking class number.");
+print1("checking class number...");
+t = getabstime();
 H = mathnfmodid(Msublll,h*6^10*index^2);
 hsub = vecprod(vector(#H~,i,H[i,i]));
+t = getabstime()-t;
+print(" done.");
+printtime(t);
 if(hsub != h*index, error("wrong class number."));
 
 print("checking that relations are in suborder.");
