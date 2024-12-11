@@ -1,0 +1,30 @@
+
+
+Thank you for the reading our paper carefully, and for the constructive feedback. We will ensure that all smaller editorial and technical comments pointed out are handled in the final version.
+
+
+We now address reviewer As questions:
+- Why the name "PEARL"? It is not explained. Personally I am not particularly enthusiastic about the proliferation of marine/aquatic names in isogeny crypto. Remember that when you apply for jobs your CV will be read by people who lack a sense of humour.
+
+Ans: We opted for the abbreviation of the paper: (P)arameter (E)xtension (A)pplicable in (R)eal (L)ife. We can rename the paper if necessary.
+
+- In Algorithm 1 there is a call to "IdealToIsogeny". The specific assumptions about this function are not explained, and no reference is given. Does this require the ideal to be smooth, or are you assuming it does KLPT or similar first? 
+
+Ans: TODO
+
+- Are you assuming that End(E) (the full quaternion order, not just the orientation) is known or unknown to attackers? It seem dangerous to me to assume it is unknown, since it is unclear how many random choices are taken. Specifically, I guess an attacker knows (or can guess) all the parameters a,d,f, etc. It seems to me that they may be directly computable from the public key. Then how randomised is Algorithm 1? If attacker runs alorithm 1 then they know I and hence O_R(I) = End(E).
+
+Ans: TODO
+
+
+We now address reviewer Bs questions:
+- Why do you explain CSIDH 2048 and 4096 in section 3, but do not mention them in section 4, sticking to much smaller parameters instead? Is this only for comparison to prior work which did not scale well, or were you unable to run these large instances? If you ran them, could you provide parameter examples and benchmarks?
+
+Ans: TODO
+
+- Would it be possible to adapt your work for higher than 128 bit of classical security? For example, if a consensus was reached that some CSIDH size provides quantum security higher than AES-256, would it be possible to adapt your optimizations strategies to match that? I have the impression that while the approaches for all 3 parameter sets you provide share a common strategy, each requires a lot of manual work, so I guess increasing the prime factors would require similar work? How much of your speedup would still be reachable in this case?
+
+Ans: TODO
+
+
+To address the technical comment made by Reviewer C: We agree, and we will extend the comparison with SCALLOP-HD (TODO: point to the fact that this is already done, but we could do it more to make them happy).
