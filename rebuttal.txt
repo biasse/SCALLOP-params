@@ -1,31 +1,29 @@
-
-
 Thank you for the reading our paper carefully, and for the constructive feedback. We will ensure that all smaller editorial and technical comments pointed out are handled in the final version.
 
 
 We now address reviewer As questions:
 - Why the name "PEARL"? It is not explained. Personally I am not particularly enthusiastic about the proliferation of marine/aquatic names in isogeny crypto. Remember that when you apply for jobs your CV will be read by people who lack a sense of humour.
 
-Ans: We opted for the abbreviation of the paper: (P)arameter (E)xtension (A)pplicable in (R)eal (L)ife. We can rename the paper if necessary.
+Ans: We opted for the abbreviation of the paper: (P)arameter (E)xtension (A)pplicable in (R)eal (L)ife. We can rename the paper if necessary, though we quite like it.
 
 - In Algorithm 1 there is a call to "IdealToIsogeny". The specific assumptions about this function are not explained, and no reference is given. Does this require the ideal to be smooth, or are you assuming it does KLPT or similar first? 
 
-Ans: TODO #Jonathan: By construction, the ideal is already smooth actually, so no KLPT needed. Will formulate a proper response.
+Ans: This is indeed not properly explained in the paper. Though the process of translating an ideal to its corresponding isogeny is well known (at least when the ideal has smooth degree), we will make sure to explicitly refer to a suitible version of the IdealToIsogeny algorithm, and make this more clear.
+For the second part of the question: By construction, the ideal is already of smooth norm g, so no KLPT is needed.
 
 - Are you assuming that End(E) (the full quaternion order, not just the orientation) is known or unknown to attackers? It seem dangerous to me to assume it is unknown, since it is unclear how many random choices are taken. Specifically, I guess an attacker knows (or can guess) all the parameters a,d,f, etc. It seems to me that they may be directly computable from the public key. Then how randomised is Algorithm 1? If attacker runs alorithm 1 then they know I and hence O_R(I) = End(E).
 
-Ans: TODO #Peter: Endomorphism ring of starting curve can be known to the attacker. What should be unknown is the endomorphism ring of the public key but that is standard. THe point is more the fact that 
+Ans: The starting curve when doing e.g. a key-exchange may have full known endomorphism ring (this is the same as in CSIDH where you typically start with the curve with j-invariant 1728). Other specific group-action based protocols may require unknown starting curve. In this case, the protocol would require trusted setup, as no way of hashing into oriented supresingular elliptic curves is known.  TODO #Peter: Endomorphism ring of starting curve can be known to the attacker. What should be unknown is the endomorphism ring of the public key but that is standard. THe point is more the fact that 
 when you see a public key then you know that there is an f-isogeny to a curve oriented by the maximal order, you just don't know which one 
 
 
 We now address reviewer Bs questions:
 - Why do you explain CSIDH 2048 and 4096 in section 3, but do not mention them in section 4, sticking to much smaller parameters instead? Is this only for comparison to prior work which did not scale well, or were you unable to run these large instances? If you ran them, could you provide parameter examples and benchmarks?
 
-Ans: TODO #Peter: I think what we can say here is that there are some implementation details that hindered us from instantiating them but these are more small technical issues. For 2048 we have everything but the available DLOG codes on the market couldn't handle field extensions. The 4096 case would be computational quite extensive but still doable but it might not make a lot of sense investing a lot of computational resources á la CSI-Fish
+Ans: While the parameters for 2048 and 4096 are feasible to generate, as we explain in section 3, they are feasible, but expensive. Specifically, for the 2048-bit level, the DLOGS happen over Fp2, which is not handled by Pari's index-calculus based dlog algorithm, and for 4096, we are required to do a class group computation comparable with CSI-FiSh. Though we show in section 4 that our work outpreform other existing work by a factor of 10, it is still clearly pretty far from practical already at the 1500 level, thus we decided that the feasible, but expensive, parameter generation for security level 2000 and 4000 was best left as future work, if more improvements appear. TODO #Peter: I think what we can say here is that there are some implementation details that hindered us from instantiating them but these are more small technical issues. For 2048 we have everything but the available DLOG codes on the market couldn't handle field extensions. The 4096 case would be computational quite extensive but still doable but it might not make a lot of sense investing a lot of computational resources á la CSI-Fish
 
 - Would it be possible to adapt your work for higher than 128 bit of classical security? For example, if a consensus was reached that some CSIDH size provides quantum security higher than AES-256, would it be possible to adapt your optimizations strategies to match that? I have the impression that while the approaches for all 3 parameter sets you provide share a common strategy, each requires a lot of manual work, so I guess increasing the prime factors would require similar work? How much of your speedup would still be reachable in this case?
 
-Ans: TODO
+Ans: Our focus in this paper was to mainly consider the security levels which are consensus for CSIDH. If larger parameters are suggested (for security say equivalent to 256-bit AES as you suggest), we would indeed have to adopt the parameter generation, and it is not yet clear whether our techniques can reasonably create parameters bigger than the 4000 level, while keeping the precomputation feasible. In fact, this is likely a problem for all SCALLOP versions: At some point the class group becomes so large, that to gain a reasonably short vector for class group evaluation, one would require a dimension for the lattice which is larger than what we can do lattice reduction on. This is already starting to be a problem at the 1500-level, and the main reason for the big drop off in performance between 1000 and 1500. Note that this is an issue intrinsic to every version of SCALLOP, but does not apply to e.g. Clapoti(s).
 
-
-To address the technical comment made by Reviewer C: We agree, and we will extend the comparison with SCALLOP-HD (TODO: point to the fact that this is already done, but we could do it more to make them happy).
+Finally, to address the technical comment made by Reviewer C: We agree, and we will extend the comparison with SCALLOP-HD, by extending section 4.6.
