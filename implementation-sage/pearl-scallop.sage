@@ -136,17 +136,6 @@ def actionMatrix(E, K1, K2, P, Q, order):
     
     norm = (736335108039604595805923406147184530889923370574768772191969612422073040099331944991573923112581267542507986451953227192970402893063850485730703075899286013451337291468249027691733891486704001513279827771740183629161065194874727962517148100775228363421083691764065477590823919364012917984605619526140822066036736) % order
 
-    print("Trace matrix:")
-    print((x_1 + x_4)%order)
-    print((-(x_1 + x_4))%order)
-    print("Trace real")
-    print(trace) #Why are these not the same lol, what am I doing wrong
-
-    print("Norm matrix:")
-    print((x_1*x_4 - x_3*x_2)%order)
-    print("Norm real")
-    print(norm) #Why are these not the same lol, what am I doing wrong
-
     """
     x_4 = (trace - x_1) % order
     x_3 = ((x_1*x_4 - norm) * pow(x_2, -1, order)) % order
@@ -174,8 +163,8 @@ def getKernel(P, Q, L, Lpos, M):
         else:
             pos = 1
 
-        print(f"ell: {ell}")
-        print(f"lams: {Mat.eigenvalues()}")
+        #print(f"ell: {ell}")
+        #print(f"lams: {Mat.eigenvalues()}")
 
         lams = sorted([int(lam) for lam in Mat.eigenvalues()])
         lam1s.append(lams[0])
@@ -196,9 +185,9 @@ def getKernel(P, Q, L, Lpos, M):
     K = sum(ker_gens)
     K.set_order(L)
 
-    print("CRT lams:")
-    print(crt(lam1s, [ell for ell, _ in factor(L)]))
-    print(crt(lam2s, [ell for ell, _ in factor(L)]))
+    #print("CRT lams:")
+    #print(crt(lam1s, [ell for ell, _ in factor(L)]))
+    #print(crt(lam2s, [ell for ell, _ in factor(L)]))
     
     return K
 
@@ -214,32 +203,32 @@ def getKernelPrecomputedEigen(P, Q, L, Lpos, omega, omega_bar):
     for ell, _ in factor(L):
         Mat = Matrix(GF(ell), [[x_1, x_3], [x_2, x_4]])
 
-        print(f"ell: {ell}")
-        print(f"lams: {Mat.eigenvalues()}")
+        #print(f"ell: {ell}")
+        #print(f"lams: {Mat.eigenvalues()}")
 
         lams = sorted([int(lam) for lam in Mat.eigenvalues()])
         lam1s.append(lams[0])
         lam2s.append(lams[1])
 
-    print("CRT lams:")
+    #print("CRT lams:")
     lampos = crt(lam1s, [ell for ell, _ in factor(L)])
     lamneg = crt(lam2s, [ell for ell, _ in factor(L)])
-    print(lampos)
-    print(lamneg)
-    print(f"L = {L}")
+    #print(lampos)
+    #print(lamneg)
+    #print(f"L = {L}")
 
     Lneg = L//Lpos
 
     Ppos = omega(P) - (lamneg % L)*P
     Qpos = omega(Q) - (lamneg % L)*Q
-    print("these should be true false false true")
-    print(omega(Ppos) == lampos*Ppos)
-    print(omega(Ppos) == lamneg*Ppos)
+    #print("these should be true false false true")
+    #print(omega(Ppos) == lampos*Ppos)
+    #print(omega(Ppos) == lamneg*Ppos)
 
     Pneg = omega(P) - (lampos % L)*P
     Qneg = omega(Q) - (lampos % L)*Q
-    print(omega(Pneg) == lampos*Pneg)
-    print(omega(Pneg) == lamneg*Pneg)
+    #print(omega(Pneg) == lampos*Pneg)
+    #print(omega(Pneg) == lamneg*Pneg)
 
     primary = [Ppos, Pneg]
     backup = [Qpos, Qneg]
@@ -343,10 +332,9 @@ def GroupAction(E, K1, K2, vec, ells):
 if __name__ == "__main__":
     proof.all(False)
 
-    #param_lvl = "1024"
-    #param_lvl = "512"
+    param_lvl = "512"
     #param_lvl = "1536"
-    param_lvl = "1536-140"
+    #param_lvl = "1536-140"
 
     with open("params_" + param_lvl + ".txt", "r") as file:
         p = Integer(literal_eval(file.readline()))
@@ -371,11 +359,11 @@ if __name__ == "__main__":
 
     dim = len(ells)
     #es = [randint(-5, 5) for _ in range(dim)]
-    es = [3 for _ in range(dim)]
+    #es = [3 for _ in range(dim)]
     #es = [0,-3,5,-2,-2,-1,1,16,14,6,5,-17,16,27,8,-34,6,9,1,2,19,-24,21,35,-2,41,-11,-5,60,-11,80,6,20,13,15,8,22,2,-21,-12,7,-19,-68,-39,9,-68,-13,33,2,-3,-6,-139,-1,-4,26,10,-6,1,18,-13,-31,13,14,-6,32,-14,6,0,-3,8,2,6,-4,0,11]
-    GroupAction(E, P, Q, es, ells)
+    #GroupAction(E, P, Q, es, ells)
 
-    """
+    
     alice = [randint(-3, 3) for _ in range(dim)]
     bob = [randint(-3, 3) for _ in range(dim)]
 
@@ -385,12 +373,9 @@ if __name__ == "__main__":
     print("\n\n\n BOB PUBLIC KEY DONE")
 
     E_BA, _, _ = GroupAction(E_B, P_B, Q_B, alice.copy(), ells)
-    print("\n\n\n ALICE SHARED SECRET DONE")
+    print(f"\n\n\n ALICE SHARED SECRET DONE: {E_BA.j_invariant()}")
     E_AB, _, _ = GroupAction(E_A, P_A, Q_A, bob.copy(), ells)
-    print("\n\n\n BOB SHARED SECRET DONE")
-
-    print(E_AB.j_invariant())
-    print(E_BA.j_invariant())
+    print(f"\n\n\n BOB SHARED SECRET DONE: {E_AB.j_invariant()}")
 
     assert E_AB.j_invariant() == E_BA.j_invariant()
-    """
+    
