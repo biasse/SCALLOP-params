@@ -1,5 +1,5 @@
 # PEARL-SCALLOP
-Implementation of PEARL-SCALLOP, a variant of SCALLOP with faster parameters and better security!
+Implementation of PEARL-SCALLOP, a variant of SCALLOP with faster parameters and better security! See [2024/1744](https://eprint.iacr.org/2024/1744) for more information
 
 ## To run:
 This folder contains two implementations of PEARL-SCALLOP, one simple SageMath implementation, and one slightly more optimised C++ implementation.
